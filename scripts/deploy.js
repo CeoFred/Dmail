@@ -19,14 +19,21 @@ async function main() {
 
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  const Token = await ethers.getContractFactory("Token");
-  const token = await Token.deploy();
-  await token.deployed();
+   const DmailTokenFactory = await hre.ethers.getContractFactory('Token');
+  const DmailToken = await DmailTokenFactory.deploy(1000000 * 10^18);
+   await DmailToken.deployed();
+  console.log("Dmail Token Contract deployed to:", DmailToken.address);
+  const DmailTokenAddress = await DmailToken.address
 
-  console.log("Token address:", token.address);
+  const DmailFactory = await hre.ethers.getContractFactory('Dmail');
+  const Dmail = await DmailFactory.deploy(DmailTokenAddress);
+  await Dmail.deployed();
+  console.log("Dmail Smart Contract deployed to:", Dmail.address);
 
   // We also save the contract's artifacts and address in the frontend directory
-  saveFrontendFiles(token);
+  saveFrontendFiles(DmailToken);
+  saveFrontendFiles(Dmail);
+
 }
 
 function saveFrontendFiles(token) {

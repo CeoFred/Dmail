@@ -1,86 +1,52 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.0;
+
 import "hardhat/console.sol";
 
 import "./Token.sol";
-import "@chainlink/contracts/src/v0.8/VRFConsumerBase.sol";
 
-contract Dmail is VRFConsumerBase{
-   Token token;
+contract Dmail {
+   Token dmailtoken;
 
-   struct UserInbox {
-      address from;
+
+   constructor(address _token_address) {
+      dmailtoken = Token(_token_address);
+   }
+      // Data location for all state variables is storage.
+   address[] serviceUsers;
+  
+   function connectUser() public  {
+      serviceUsers.push(msg.sender);
+   }
+
+   struct Message {
+      address sender;
       string message;
-      []Thread thread;  
-      uint id;    
+      uint timestamp;
+      string subject;
    }
 
-  struct Thread {
-      address from;
-      string message;
-      address to;
-      bool read;
-   }
+   mapping(address => Message[]) messages;
 
-   mapping(address => []UserInbox) inbox;
+   function sendMessage(address _to, string memory subject, string memory _message) public {
 
-   function Dmail(address _token) public {
-      token = Token(_token);
-   }
+      require(bytes(subject).length != 0, "Subject cannot be empty");
+      require(bytes(_message).length != 0, "Message cannot be empty");
 
-      
-    /** 
-     * Requests randomness 
-     */
-    function getRandomNumber() public returns (bytes32 requestId) {
-        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
-        return requestRandomness(keyHash, fee);
-    }
-
-    /**
-     * Callback function used by VRF Coordinator
-     */
-    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
-        randomResult = randomness;
-    }
-
-   function generateRandomStringFromChainLink(){
-      uint256 randomNumber = getRandomNumber();
-   }
-
-   function send(address _to, string _message) public {
-      UserInbox inbox = this.inbox[_to];
-      getRandomNumber();
-      inbox.id = randomResult;
-      
-      if (inbox.thread.length == 0) {
-         Thread thread = Thread(msg.sender, _message, _to, false);
-         inbox.thread.push(thread);
-      } else {
-         Thread thread = inbox.thread[inbox.thread.length - 1];
-         if (thread.to == msg.sender) {
-            thread.message = _message;
-         } else {
-            Thread thread = Thread(msg.sender, _message, _to, false);
-            inbox.thread.push(thread);
-         }
+      if(bytes(_message).length > 10024) {
+         console.log("Message too long");
+         revert('Message too long');
       }
+
+
+      messages[_to].push(Message(msg.sender, _message, block.timestamp, subject));
    }
 
-   function read(address _to) public {
-      UserInbox inbox = this.inbox[_to];
-      if (inbox.thread.length == 0) {
-         console.log("No messages");
-      } else {
-         Thread thread = inbox.thread[inbox.thread.length - 1];
-         if (thread.to == msg.sender) {
-            thread.read = true;
-         }
-      }
+   function getInbox() public view returns (Message[] memory inbox) {
+       Message[] memory inbox =  messages[msg.sender];
+      return inbox;
    }
 
-   function getInbox(address _to) public view returns (UserInbox) {
-      return inbox[_to];
-   }
+ 
   }

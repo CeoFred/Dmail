@@ -28,10 +28,9 @@ async function main() {
   const DmailFactory = await hre.ethers.getContractFactory('Dmail');
   const Dmail = await DmailFactory.deploy(DmailTokenAddress);
   await Dmail.deployed();
-  console.log("Dmail Smart Contract deployed to:", Dmail.address);
+  console.log("Dmail Core Smart Contract deployed to:", Dmail.address);
 
   // We also save the contract's artifacts and address in the frontend directory
-  saveFrontendFiles(DmailToken);
   saveFrontendFiles(Dmail);
 
 }
@@ -46,14 +45,14 @@ function saveFrontendFiles(token) {
 
   fs.writeFileSync(
     contractsDir + "/contract-address.json",
-    JSON.stringify({ Token: token.address }, undefined, 2)
+    JSON.stringify({ Dmail: token.address }, undefined, 2)
   );
 
-  const TokenArtifact = artifacts.readArtifactSync("Token");
+  const DmailArtifact = artifacts.readArtifactSync("Dmail");
 
   fs.writeFileSync(
-    contractsDir + "/Token.json",
-    JSON.stringify(TokenArtifact, null, 2)
+    contractsDir + "/Dmail.json",
+    JSON.stringify(DmailArtifact, null, 2)
   );
 }
 

@@ -5,8 +5,11 @@ import { ethers } from "ethers";
 
 // We import the contract's artifacts and address here, as we are going to be
 // using them with ethers
-import TokenArtifact from "../contracts/Token.json";
+import DmailArtifact from "../contracts/Dmail.json";
+import DmailTokenArtifact from "../contracts/Token.json";
+
 import contractAddress from "../contracts/contract-address.json";
+import Dmail from '../containers/Dmail'
 
 // All the logic of this dapp is contained in the Dapp component.
 // These other components are just presentational ones: they don't have any
@@ -22,7 +25,7 @@ import { NoTokensMessage } from "./NoTokensMessage";
 // This is the Hardhat Network id, you might change it in the hardhat.config.js
 // Here's a list of network ids https://docs.metamask.io/guide/ethereum-provider.html#properties
 // to use when deploying to other networks.
-const HARDHAT_NETWORK_ID = '31337';
+const HARDHAT_NETWORK_ID = '5777';
 
 // This is an error code that indicates that the user canceled a transaction
 const ERROR_CODE_TX_REJECTED_BY_USER = 4001;
@@ -34,9 +37,7 @@ const ERROR_CODE_TX_REJECTED_BY_USER = 4001;
 //   4. Transfers tokens by sending transactions
 //   5. Renders the whole application
 //
-// Note that (3) and (4) are specific of this sample application, but they show
-// you how to keep your Dapp and contract's state in sync,  and how to send a
-// transaction.
+
 export class Dapp extends React.Component {
   constructor(props) {
     super(props);
@@ -53,6 +54,7 @@ export class Dapp extends React.Component {
       txBeingSent: undefined,
       transactionError: undefined,
       networkError: undefined,
+      contract: null
     };
 
     this.state = this.initialState;
@@ -65,13 +67,7 @@ export class Dapp extends React.Component {
       return <NoWalletDetected />;
     }
 
-    // The next thing we need to do, is to ask the user to connect their wallet.
-    // When the wallet gets connected, we are going to save the users's address
-    // in the component's state. So, if it hasn't been saved yet, we have
-    // to show the ConnectWallet component.
-    //
-    // Note that we pass it a callback that is going to be called when the user
-    // clicks a button. This callback just calls the _connectWallet method.
+
     if (!this.state.selectedAddress) {
       return (
         <ConnectWallet 
@@ -82,82 +78,9 @@ export class Dapp extends React.Component {
       );
     }
 
-    // If the token data or the user's balance hasn't loaded yet, we show
-    // a loading component.
-    if (!this.state.tokenData || !this.state.balance) {
-      return <Loading />;
-    }
-
     // If everything is loaded, we render the application.
     return (
-      <div className="container p-4">
-        <div className="row">
-          <div className="col-12">
-            <h1>
-              {this.state.tokenData.name} ({this.state.tokenData.symbol})
-            </h1>
-            <p>
-              Welcome <b>{this.state.selectedAddress}</b>, you have{" "}
-              <b>
-                {this.state.balance.toString()} {this.state.tokenData.symbol}
-              </b>
-              .
-            </p>
-          </div>
-        </div>
-
-        <hr />
-
-        <div className="row">
-          <div className="col-12">
-            {/* 
-              Sending a transaction isn't an immidiate action. You have to wait
-              for it to be mined.
-              If we are waiting for one, we show a message here.
-            */}
-            {this.state.txBeingSent && (
-              <WaitingForTransactionMessage txHash={this.state.txBeingSent} />
-            )}
-
-            {/* 
-              Sending a transaction can fail in multiple ways. 
-              If that happened, we show a message here.
-            */}
-            {this.state.transactionError && (
-              <TransactionErrorMessage
-                message={this._getRpcErrorMessage(this.state.transactionError)}
-                dismiss={() => this._dismissTransactionError()}
-              />
-            )}
-          </div>
-        </div>
-
-        <div className="row">
-          <div className="col-12">
-            {/*
-              If the user has no tokens, we don't show the Tranfer form
-            */}
-            {this.state.balance.eq(0) && (
-              <NoTokensMessage selectedAddress={this.state.selectedAddress} />
-            )}
-
-            {/*
-              This component displays a form that the user can use to send a 
-              transaction and transfer some tokens.
-              The component doesn't have logic, it just calls the transferTokens
-              callback.
-            */}
-            {this.state.balance.gt(0) && (
-              <Transfer
-                transferTokens={(to, amount) =>
-                  this._transferTokens(to, amount)
-                }
-                tokenSymbol={this.state.tokenData.symbol}
-              />
-            )}
-          </div>
-        </div>
-      </div>
+     <Dmail address={this.state.selectedAddress} contract={this.state.contract} />
     );
   }
 
@@ -165,6 +88,11 @@ export class Dapp extends React.Component {
     // We poll the user's balance, so we have to stop doing that when Dapp
     // gets unmounted
     this._stopPollingData();
+  }
+
+  componentDidMount() { 
+    // We connect to the user's wallet
+    this._connectWallet();
   }
 
   async _connectWallet() {
@@ -217,32 +145,31 @@ export class Dapp extends React.Component {
     // for the user's balance.
 
     // Fetching the token data and the user's balance are specific to this
-    // sample project, but you can reuse the same initialization pattern.
     this._intializeEthers();
-    this._getTokenData();
-    this._startPollingData();
+    // this._getTokenData();
+    // this._startPollingData();
   }
 
   async _intializeEthers() {
     // We first initialize ethers by creating a provider using window.ethereum
     this._provider = new ethers.providers.Web3Provider(window.ethereum);
-
-    // When, we initialize the contract using that provider and the token's
-    // artifact. You can do this same thing with your contracts.
-    this._token = new ethers.Contract(
-      contractAddress.Token,
-      TokenArtifact.abi,
+    const contract = await new ethers.Contract(
+      contractAddress.Dmail,
+      DmailArtifact.abi,
       this._provider.getSigner(0)
-    );
+    );  
+
+    this.setState(prev => {
+      return {
+        ...prev,
+        contract
+      }
+    })
+
+    console.log(this.contract);
+
   }
 
-  // The next two methods are needed to start and stop polling data. While
-  // the data being polled here is specific to this example, you can use this
-  // pattern to read any data from your contracts.
-  //
-  // Note that if you don't need it to update in near real time, you probably
-  // don't need to poll it. If that's the case, you can just fetch it when you
-  // initialize the app, as we do with the token data.
   _startPollingData() {
     this._pollDataInterval = setInterval(() => this._updateBalance(), 1000);
 

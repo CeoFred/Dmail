@@ -11,7 +11,16 @@ const privateKeys = process.env.PRIVATE_KEYS || ""
 
 
 module.exports = {
-  solidity: "0.8.0",
+  solidity: {
+    compilers : [
+      {
+        version: "0.8.0"
+      },
+      {
+        version: ">=0.4.22 <0.9.0"
+      }
+    ]
+  },
   networks: {
     testnet: {
       url: `https://api.s0.b.hmny.io`,
@@ -21,6 +30,10 @@ module.exports = {
     mainnet: {
       url: `https://api.harmony.one`,
       accounts: [`0x${privateKeys}`]
+    },
+      development: {
+      url: "http://localhost:7545",
+      network_id: "1234"
     }
   }
 };

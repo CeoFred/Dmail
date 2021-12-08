@@ -8,6 +8,7 @@ const main = async () => {
   const DmailFactory = await hre.ethers.getContractFactory('Dmail');
   const Dmail = await DmailFactory.deploy(DmailTokenAddress);
   await Dmail.deployed();
+  await Dmail.connectUser();
   console.log("Dmail Smart Contract deployed to:", Dmail.address);
 
 };

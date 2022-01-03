@@ -23,12 +23,12 @@ module.exports = {
   },
   networks: {
     testnet: {
-      url: `https://api.s0.b.hmny.io`,
+      url: `https://eth-rinkeby.alchemyapi.io/v2/XkweKdBmSHg6wDqDeNnaGPzzprN6Qoto`,
       accounts: [`0x${privateKeys}`],
       timeout: 100000,
     },
     mainnet: {
-      url: `https://api.harmony.one`,
+      url: `https://eth-rinkeby.alchemyapi.io/v2/XkweKdBmSHg6wDqDeNnaGPzzprN6Qoto`,
       accounts: [`0x${privateKeys}`]
     },
       development: {

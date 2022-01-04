@@ -286,9 +286,9 @@ export class Dapp extends React.Component {
     if (window.ethereum.networkVersion === HARDHAT_NETWORK_ID) {
       return true;
     }
-
+    console.log()
     this.setState({ 
-      networkError: 'Please connect Metamask to Localhost:8545'
+      networkError: 'Please connect Metamask to Rinkeby testNet to process'
     });
 
     return false;

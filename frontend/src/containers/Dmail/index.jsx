@@ -19,8 +19,6 @@ export default function Dmail({ address,contract }) {
 
   async function fetchInbox(){
     const tx = await contract.getInbox();
- 
-    console.log(tx[0])
     let inbox = [];
         tx.forEach(inb => {
           inbox.push({
@@ -47,7 +45,7 @@ export default function Dmail({ address,contract }) {
         </Row>
       </Container>
       <div className="mail_compose">
-        <Compose showCompose={showCompose} setShowCompose={setShowCompose} contract={contract}  />
+        <Compose reload={fetchInbox} showCompose={showCompose} setShowCompose={setShowCompose} contract={contract}  />
         </div>
     </div>
   )

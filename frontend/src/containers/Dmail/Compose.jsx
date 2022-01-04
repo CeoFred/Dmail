@@ -4,7 +4,7 @@ import {Loading} from '../../components/Loading'
 import {ethers} from 'ethers'
 
 
-export default function Compose({ contract }) {
+export default function Compose({ contract,reload }) {
 
 
     const [loading, setLoading] = useState(false)
@@ -34,6 +34,7 @@ export default function Compose({ contract }) {
       setMessage('')
       setSuccess(true)
       setSubject('')
+      reload()
     } catch (error) {
       console.log(error)
       setError(error)
